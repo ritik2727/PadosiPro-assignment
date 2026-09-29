@@ -65,6 +65,15 @@ npm run dev
 
 ---
 
+### 🔑 Pre-Seeded Evaluator Test Account
+For instant 1-second testing without creating a new email:
+- **Email**: `demo@padosipro.com`
+- **Password**: `Password123!`
+- *(Status: Verified account pre-loaded with completed profile & active requests)*
+- *Tip: On the mobile sign-in screen, simply tap the **"⚡ Evaluator 1-Tap Fill"** button to auto-fill!*
+
+---
+
 ### Alternative: Running in Separate Terminals
 
 #### Terminal 1: Backend API
@@ -87,35 +96,52 @@ npm start
 
 ---
 
-## 📦 Building the Standalone Android APK
+## 📦 Building the Standalone Android APK & Cloud Deployment
 
-You can build a standalone Android APK (`.apk`) using Expo Application Services (EAS):
+When generating a standalone `.apk` for external evaluators, the app must connect to a publicly accessible cloud backend (since evaluators cannot access your local `localhost` or local Wi-Fi).
 
-1. **Install EAS CLI globally**:
-   ```bash
-   npm install -g eas-cli
+### Step 1: Deploy Backend to Cloud (Render.com - 100% Free)
+1. Push this repository to **GitHub**.
+2. Go to **[Render.com](https://render.com/)** and create a **New Web Service**.
+3. Connect your GitHub repository and set:
+   - **Root Directory**: `backend`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build && npm run seed`
+   - **Start Command**: `npm start`
+4. *(Optional Real Email)* In Render's **Environment** tab, set Gmail SMTP variables:
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=465
+   SMTP_USER=your_gmail@gmail.com
+   SMTP_PASS=your_16_char_google_app_password
+   SMTP_FROM=PadosiPro <your_gmail@gmail.com>
    ```
-2. **Log in to your Expo account**:
-   ```bash
-   eas login
-   ```
-3. **Configure the build profile** (included in `mobile/eas.json`):
-   ```bash
-   eas build:configure
-   ```
-4. **Trigger APK build for Android**:
-   ```bash
-   eas build --platform android --profile preview
-   ```
-   *EAS will build the APK in the cloud and output a direct download link for the `.apk` file.*
+5. Deploy! Render will give you a public HTTPS URL: e.g. `https://padosipro-api.onrender.com`.
 
-Alternatively, for offline local builds using Android Studio:
-```bash
-npx expo prebuild
-cd android
-./gradlew assembleRelease
+### Step 2: Configure Mobile App for the Cloud Backend
+In `mobile/.env`, set:
+```env
+EXPO_PUBLIC_API_URL=https://padosipro-api.onrender.com
 ```
-The compiled APK will be located at `android/app/build/outputs/apk/release/app-release.apk`.
+
+### Step 3: Trigger APK Build with EAS
+```bash
+# 1. Install EAS CLI globally (if not already installed)
+npm install -g eas-cli
+
+# 2. Login to your Expo account
+eas login
+
+# 3. Trigger cloud build for Android APK
+cd mobile
+eas build --platform android --profile preview
+```
+*EAS builds the standalone `.apk` in the cloud and provides a direct download QR code & link.*
+
+### 📱 How External Evaluators Can Test the Standalone APK
+1. **Option A (Instant Test Account)**: Evaluators can log in using `demo@padosipro.com` / `Password123!` to test all features instantly with zero OTP wait.
+2. **Option B (Real Email Delivery)**: If Gmail SMTP is set in the backend environment, any email they register with will receive real 6-digit OTPs in their real inbox.
+3. **Option C (Ethereal Preview Link)**: If using default Ethereal testing, the mobile app shows an **"Open Ethereal Test Email in Browser"** button directly on the OTP screen so they can view the email in their mobile browser without needing access to server logs.
 
 ---
 
