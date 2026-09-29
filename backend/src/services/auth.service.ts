@@ -43,7 +43,7 @@ export class AuthService {
   /**
    * Register a new user with email and password
    */
-  async register(email: string, password: string):Promise<{ message: string; email: string }> {
+  async register(email: string, password: string): Promise<{ message: string; email: string; previewUrl?: string }> {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Check if user already exists
