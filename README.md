@@ -1,179 +1,192 @@
-# PadosiPro Full-Stack Developer Assignment
+# PadosiPro — Full-Stack Take-Home Assignment
 
-A production-grade native mobile application and backend service replicating the onboarding, email OTP verification, profile setup, and task selection experience of **[app.padosipro.com](https://app.padosipro.com/)**.
-
----
-
-## 📱 Features & Highlights
-
-- **Native Mobile Experience**: Built natively with React Native (Expo) mirroring the exact design system, emerald palette (`#0e4b3e`), typography, and user flows from PadosiPro.
-- **Email Verification via OTP**:
-  - Secure 6-digit one-time code.
-  - 10-minute expiry (TTL) with single-use consumption.
-  - Strictly limited to 5 wrong attempts before invalidation.
-  - 30-second resend cooldown timer with live UI countdown.
-  - Zero plain-text storage (persisted as cryptographic SHA-256 hash).
-  - Out-of-the-box local testing: Logs OTP directly to console and provides an [Ethereal](https://ethereal.email) web mailbox link.
-- **Authentication & Persistence**:
-  - Register with inline password confirmation & format validation.
-  - Login for verified users issuing signed JWT tokens.
-  - Unverified logins cleanly trigger automatic OTP resend and route to verification.
-  - Cold restart session persistence using AsyncStorage.
-- **"A few details" Profile Onboarding**:
-  - Full Name, Indian Mobile Number (`+91` 10 digits), Address & Area, Society / Building, Flat / Unit, and Gate Notes.
-  - Business Name (optional, with documented rationale in [DESIGN.md](DESIGN.md)).
-- **Task Catalogue & Request Flow**:
-  - 15+ curated task categories with 40+ sub-services modeled directly from `app.padosipro.com`.
-  - Real-time search query filter (*"AC leaking, cook for weekends..."*).
-  - Interactive category accordion with dynamic selection pills.
-  - Urgency level selector (*Standard, Same day, Express, Scheduled*).
-  - Confirmation screen (*"We're on it"* with assigned Lifestyle Manager *Pilot LM*).
-  - Home dashboard tracking active requests and user profile.
-- **Defensive Engineering**:
-  - Input validation on all endpoints with Zod.
-  - Automated tests covering risky logic (OTP gen, SHA-256 hashing, attempt lockouts, expiry, login rules).
+Author: **Ritik Jain**  
+Repository: [github.com/ritik2727/PadosiPro-assignment](https://github.com/ritik2727/PadosiPro-assignment)  
+Live Backend API: [https://padosipro-assignment.onrender.com](https://padosipro-assignment.onrender.com)  
+API Health Check: [https://padosipro-assignment.onrender.com/api/health](https://padosipro-assignment.onrender.com/api/health)  
+Architecture & Tradeoffs Document: [DESIGN.md](DESIGN.md)
 
 ---
 
-## 🛠️ Tech Stack
+## 📌 Project Overview
 
-- **Backend**: Node.js, Express, TypeScript, better-sqlite3 (WAL Mode & Foreign Keys), Bcrypt, JWT, Zod, Nodemailer.
-- **Frontend / Mobile**: React Native, Expo SDK, TypeScript, Expo Vector Icons, AsyncStorage.
-- **Testing**: Jest, Supertest, ts-jest.
-- **DevOps**: Docker, Docker Compose.
+This repository contains a full-stack implementation of the PadosiPro onboarding, authentication, profile management, and task request experience modeled after **[app.padosipro.com](https://app.padosipro.com/)**.
+
+The project consists of:
+1. **Backend API**: A Node.js and TypeScript REST API using Express, SQLite in WAL mode with foreign keys, Bcrypt password hashing, SHA-256 hashed OTP verification, and JWT session handling.
+2. **Mobile Application**: A React Native (Expo) client closely matching the emerald visual design (`#0e4b3e`), typography, iconography, and state transitions of the PadosiPro web application.
 
 ---
 
-## 🚀 Quick Start (Under 5 Minutes)
+## ✨ Implemented Requirements
+
+### 1. Authentication & Cryptographic OTP Security
+- **Email & Password Registration**: Email normalization, minimum 8-character password with inline confirmation validation.
+- **Cryptographic 6-Digit OTP**:
+  - Secure random code generation (`crypto.randomInt`).
+  - Zero plaintext storage in SQLite — only one-way `SHA-256` digests are stored.
+  - Constant-time verification (`crypto.timingSafeEqual`) to mitigate timing attacks.
+  - **10-minute expiry (TTL)** and atomic single-use invalidation (`is_used = 1`).
+  - **Hard limit of 5 failed attempts** before locking and invalidating the token (`429 Too Many Requests`).
+  - **30-second cooldown** between successive OTP generation requests with a live countdown timer.
+- **Session Management**: Verified users receive signed JSON Web Tokens (JWT). Unverified logins return `403 Forbidden` (`code: 'UNVERIFIED_EMAIL'`) and automatically route the user to verification.
+- **Offline Persistence**: Session tokens and user states persist across cold restarts via `@react-native-async-storage/async-storage`.
+
+### 2. "A few details" Profile Onboarding
+- First-time login automatically gates the user to the profile setup screen.
+- Form fields:
+  - **Full Name** (required)
+  - **Mobile Number** (required; validates 10-digit Indian numbers with `+91`)
+  - **Address & Area** (required)
+  - **Society / Building** (optional)
+  - **Flat / Unit** (optional)
+  - **Gate Notes** (optional)
+  - **Business Name** (optional; see [DESIGN.md](DESIGN.md) for rationale)
+
+### 3. Task Catalogue & Service Requests
+- 15 curated task categories with 40+ sub-services seeded from `app.padosipro.com`.
+- Real-time search filter (*"AC leaking, cook for weekends..."*).
+- Interactive category accordion with multiple sub-service selection pills.
+- Urgency selection (*Standard, Same day, Express, Scheduled*).
+- Confirmation screen assigning the dedicated Lifestyle Manager (*Pilot LM*).
+- Home dashboard displaying active requests and profile details.
+
+### 4. Automated Test Suite
+- Comprehensive Jest & Supertest integration tests covering OTP generation, SHA-256 hashing, timing attacks, attempt limits, expiration, cooldowns, and protected endpoints.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Backend** | Node.js, Express, TypeScript, better-sqlite3 (WAL Mode), Bcrypt, JWT, Zod, Nodemailer |
+| **Mobile Client** | React Native, Expo (SDK 54), TypeScript, Expo Vector Icons, AsyncStorage |
+| **Testing** | Jest, Supertest, ts-jest |
+| **DevOps & Cloud** | Render.com (Cloud API), EAS Build (Android APK), Docker, Docker Compose |
+
+---
+
+## 🚀 Quick Start (Local Setup in < 5 Minutes)
 
 ### Prerequisites
-- **Node.js**: v18.0.0 or higher (Tested on v20 & v22)
+- **Node.js**: v18.0.0 or higher
 - **npm**: v9 or higher
-- *(Optional)* Docker and Docker Compose (if you prefer containerized execution)
 
----
-
-### ⚡ 1-Command Startup (Runs Both Backend & Mobile)
+### Option 1: One-Command Startup (Recommended)
 From the project root:
 ```bash
-# Starts both the backend API and the Expo mobile server together
 npm run dev
 ```
-- `[BACKEND]` will run on `http://localhost:5000` (Health check: `http://localhost:5000/api/health`)
-- `[MOBILE]` will run on `http://localhost:8081` (Press `w` for browser, or scan QR code on phone)
-- OTP codes will be printed directly in the terminal whenever requested.
+This runs both the backend and mobile dev servers concurrently:
+- **Backend API**: `http://localhost:5000` (Health check: `http://localhost:5000/api/health`)
+- **Mobile Server**: `http://localhost:8081` (Press `w` for Web preview, or scan QR code in Expo Go)
 
 ---
 
-### 🔑 Pre-Seeded Evaluator Test Account
-For instant 1-second testing without creating a new email:
-- **Email**: `demo@padosipro.com`
-- **Password**: `Password123!`
-- *(Status: Verified account pre-loaded with completed profile & active requests)*
-- *Tip: On the mobile sign-in screen, simply tap the **"⚡ Evaluator 1-Tap Fill"** button to auto-fill!*
+### Option 2: Running in Separate Terminals
 
----
-
-### Alternative: Running in Separate Terminals
-
-#### Terminal 1: Backend API
+#### Terminal 1 — Backend API
 ```bash
 cd backend
+npm install
 npm run dev
 ```
 
-#### Terminal 2: Mobile App
+#### Terminal 2 — Mobile Application
 ```bash
 cd mobile
+npm install
 npm start
 ```
-
-#### How to Preview:
-- **Web Browser**: Press `w` in the terminal to launch the native app directly in your browser.
-- **Physical Device**: Install the **Expo Go** app on your iOS or Android phone, then scan the QR code shown in the terminal.
-- **Android Emulator**: Press `a` in the terminal.
-- **iOS Simulator** *(macOS only)*: Press `i` in the terminal.
+- Press `w` to open in your web browser.
+- Press `a` for Android Emulator.
+- Scan the Metro terminal QR code with **Expo Go** on Android or iOS.
 
 ---
 
-## 📦 Building the Standalone Android APK & Cloud Deployment
+## 🔑 Pre-Seeded Test Account
 
-When generating a standalone `.apk` for external evaluators, the app must connect to a publicly accessible cloud backend (since evaluators cannot access your local `localhost` or local Wi-Fi).
-
-### Step 1: Deploy Backend to Cloud (Render.com - 100% Free)
-1. Push this repository to **GitHub**.
-2. Go to **[Render.com](https://render.com/)** and create a **New Web Service**.
-3. Connect your GitHub repository and set:
-   - **Root Directory**: `backend`
-   - **Environment**: `Node`
-   - **Build Command**: `npm install && npm run build && npm run seed`
-   - **Start Command**: `npm start`
-4. *(Optional Real Email)* In Render's **Environment** tab, set Gmail SMTP variables:
-   ```env
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=465
-   SMTP_USER=your_gmail@gmail.com
-   SMTP_PASS=your_16_char_google_app_password
-   SMTP_FROM=PadosiPro <your_gmail@gmail.com>
-   ```
-5. Deploy! Render will give you a public HTTPS URL: e.g. `https://padosipro-api.onrender.com`.
-
-### Step 2: Configure Mobile App for the Cloud Backend
-In `mobile/.env`, set:
-```env
-EXPO_PUBLIC_API_URL=https://padosipro-api.onrender.com
-```
-
-### Step 3: Trigger APK Build with EAS
-```bash
-# 1. Install EAS CLI globally (if not already installed)
-npm install -g eas-cli
-
-# 2. Login to your Expo account
-eas login
-
-# 3. Trigger cloud build for Android APK
-cd mobile
-eas build --platform android --profile preview
-```
-*EAS builds the standalone `.apk` in the cloud and provides a direct download QR code & link.*
-
-### 📱 How External Evaluators Can Test the Standalone APK
-
-1. **Option A (Instant 1-Tap Test Account)**: Evaluators can log in using `demo@padosipro.com` / `Password123!` to test all features instantly with zero OTP wait (simply tap **"⚡ Evaluator 1-Tap Fill"** on the mobile Sign In tab).
-2. **Option B (In-App Ethereal Preview Button)**: If real SMTP is not set, we added an **"Open Ethereal Test Email in Browser"** button directly on [VerifyOtpScreen.tsx](mobile/src/screens/VerifyOtpScreen.tsx). The evaluator can tap this button directly on their phone to open the email in Chrome/Safari and view the OTP.
-3. **Option C (Real Email Delivery via Gmail SMTP)**: If Gmail SMTP environment variables are configured on the backend, any email the reviewer registers with will receive real 6-digit OTPs directly into their real inbox.
+For immediate testing without registering a new email:
+- **Email**: `demo@padosipro.com`
+- **Password**: `Password123!`
+- **Profile**: Ritik Jain, `+91 97703 58070`, Vijay Nagar, Andheri East, Mumbai
+- *(On the mobile Sign In tab, tap **"⚡ Evaluator 1-Tap Fill"** to auto-fill these credentials)*
 
 ---
 
 ## 🧪 Running Automated Tests
 
-To run the backend test suite verifying OTP cryptographic hashing, expiration, attempt locks, and authentication rules:
+To run the backend test suite:
 ```bash
 cd backend
 npm test
 ```
+All 11 integration and unit tests will run in band against an isolated test database.
 
 ---
 
-## 🔒 Environment Variables
+## 🌐 Live Cloud Deployment & Standalone APK
 
-The backend includes a pre-configured `.env` and `.env.example`:
+### Live Backend
+- **Base URL**: `https://padosipro-assignment.onrender.com`
+- **Health Check**: `https://padosipro-assignment.onrender.com/api/health`
+- **Catalogue Endpoint**: `https://padosipro-assignment.onrender.com/api/tasks`
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `5000` | Port for the Express server |
-| `NODE_ENV` | `development` | Environment mode |
-| `JWT_SECRET` | *(secret)* | Secret key for signing JWT tokens |
-| `JWT_EXPIRES_IN` | `7d` | Token expiration duration |
-| `DATABASE_PATH` | `./data/padosipro.sqlite` | SQLite database file path |
-| `OTP_EXPIRY_MINUTES` | `10` | OTP validity window in minutes |
-| `OTP_MAX_ATTEMPTS` | `5` | Maximum incorrect attempts before lockout |
-| `OTP_RESEND_COOLDOWN_SECONDS` | `30` | Minimum wait time before resending OTP |
-| `EMAIL_SERVICE` | `ethereal` | Email provider (`ethereal` or `smtp`) |
+### Standalone Android APK Build
+The mobile client is pre-configured with the production cloud API URL in `mobile/eas.json`.
+
+To trigger a cloud build using Expo Application Services:
+```bash
+cd mobile
+npx eas-cli build --platform android --profile preview
+```
+
+### Email Delivery on Mobile / APK
+- **Ethereal Test Inbox**: When registering with any email, the OTP screen provides an **"Open Ethereal Test Email in Browser"** button to view the received email directly on mobile without needing server logs.
+- **Terminal Logging**: The 6-digit OTP is also logged to the server console upon dispatch.
+- **Production SMTP**: Standard SMTP environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`) are supported for direct inbox delivery.
 
 ---
 
-## 📑 Architecture & Design Decisions
+## 📁 Repository Structure
 
-For detailed notes on architecture, threat modeling, trade-offs, and future milestones, please refer to **[DESIGN.md](DESIGN.md)**.
+```
+├── backend/
+│   ├── src/
+│   │   ├── config/          # Environment configuration
+│   │   ├── controllers/     # Express route controllers
+│   │   ├── db/              # SQLite connection, schema, and seed data
+│   │   ├── middleware/      # JWT auth, error handling, Zod validation
+│   │   ├── routes/          # Express route definitions
+│   │   ├── services/        # Business logic (Auth, Profile, Tasks, Email)
+│   │   └── utils/           # Cryptographic hashing & logger utilities
+│   ├── tests/               # Jest & Supertest integration tests
+│   ├── Dockerfile           # Containerized backend deployment
+│   └── tsconfig.json
+├── mobile/
+│   ├── assets/              # App launcher icons, splash, and brand logos
+│   ├── src/
+│   │   ├── api/             # API client with dynamic host resolution
+│   │   ├── components/      # Reusable UI elements (Button, Input, Header, LogoMark)
+│   │   ├── context/         # AuthContext & persistent session state
+│   │   ├── screens/         # Native screens (Auth, OTP, Profile, Home, Catalogue, Urgency)
+│   │   └── theme/           # Color palette (#0e4b3e) and typography tokens
+│   ├── app.json             # Expo configuration (package: com.padosipro.assignment)
+│   └── eas.json             # EAS Build profile for standalone APK
+├── DESIGN.md                # Architectural design document & tradeoff analysis
+├── README.md                # Setup & project documentation
+└── package.json             # Root workspace with concurrent 1-command startup
+```
+
+---
+
+## 📑 Architectural Decisions & Tradeoffs
+
+For detailed documentation covering:
+- System Architecture & Threat Modeling
+- Why `business_name` is optional
+- Architectural tradeoffs (SQLite vs PostgreSQL, React Native Expo vs Bare RN, Nodemailer vs third-party SaaS)
+- Roadmap with an additional week (Real-time LM WebSockets, Razorpay UPI, Push Notifications)
+
+Please see **[DESIGN.md](DESIGN.md)**.
