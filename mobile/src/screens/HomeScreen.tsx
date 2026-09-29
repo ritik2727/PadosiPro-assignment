@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { tasksApi } from '../api/tasks';
 import { UserRequest } from '../types';
 import { Button } from '../components/Button';
+import { LogoMark } from '../components/LogoMark';
 
 interface HomeScreenProps {
   onNavigateToTasks: (category?: string, query?: string) => void;
@@ -78,7 +79,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <View style={styles.innerContent}>
           {/* Top Bar Greeting */}
           <View style={styles.topBar}>
-            <Text style={styles.greetingText}>Good morning, {firstName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <LogoMark size={32} />
+              <Text style={[styles.greetingText, { marginLeft: 10 }]}>Good morning, {firstName}</Text>
+            </View>
             <TouchableOpacity
               onPress={() => setShowProfileModal(true)}
               style={styles.avatarButton}

@@ -13,10 +13,8 @@
       "package": "com.padosipro.assignment",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#0d3830",
+        "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false
     },

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { colors } from '../theme/colors';
+import { LogoMark } from '../components/LogoMark';
 
 export const SplashScreen: React.FC = () => {
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -23,6 +24,9 @@ export const SplashScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <View style={{ marginBottom: 20 }}>
+        <LogoMark size={72} />
+      </View>
       <Text style={styles.brandTitle}>PadosiPro</Text>
       <Text style={styles.tagline}>You don't manage tasks — we do.</Text>
 
