@@ -84,6 +84,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onSaved }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
           {/* Location Chip */}
@@ -192,7 +194,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 36,
-    paddingBottom: 48,
+    paddingBottom: 160,
   },
   contentContainer: {
     maxWidth: 540,

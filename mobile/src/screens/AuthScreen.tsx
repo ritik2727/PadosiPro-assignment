@@ -105,6 +105,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
           {/* Logo Squircle */}
@@ -248,8 +250,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 32,
-    paddingBottom: 40,
-    justifyContent: 'center',
+    paddingBottom: 160,
   },
   contentContainer: {
     maxWidth: 440,

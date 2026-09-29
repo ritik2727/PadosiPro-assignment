@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  TouchableOpacity,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -25,9 +26,13 @@ export const Input: React.FC<InputProps> = ({
   prefix,
   containerStyle,
   style,
+  secureTextEntry,
   ...rest
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const isSecure = secureTextEntry && !isPasswordVisible;
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
@@ -56,8 +61,24 @@ export const Input: React.FC<InputProps> = ({
           placeholderTextColor={colors.textLight}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          secureTextEntry={isSecure}
           {...rest}
         />
+
+        {secureTextEntry && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            style={styles.eyeIcon}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialCommunityIcons
+              name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color={isPasswordVisible ? colors.primary : colors.textLight}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {!!error && <Text style={styles.errorText}>{error}</Text>}
@@ -107,6 +128,10 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: 15,
     color: colors.text,
+  },
+  eyeIcon: {
+    padding: 4,
+    marginLeft: 8,
   },
   errorText: {
     fontSize: 12,
