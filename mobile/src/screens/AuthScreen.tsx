@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Keyboard,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { LogoMark } from '../components/LogoMark';
@@ -26,6 +27,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   onNavigateToHome,
 }) => {
   const { register, login, setPendingEmail } = useAuth();
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [email, setEmail] = useState('');
@@ -103,9 +124,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       style={styles.keyboardContainer}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 80 : 40 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets={true}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
@@ -204,6 +228,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             secureTextEntry
             autoCapitalize="none"
             value={password}
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollTo({ y: 180, animated: true });
+              }, 200);
+            }}
             onChangeText={(text) => {
               setPassword(text);
               if (errors.password) setErrors({ ...errors, password: '' });
@@ -219,6 +248,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               secureTextEntry
               autoCapitalize="none"
               value={confirmPassword}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 200);
+              }}
               onChangeText={(text) => {
                 setConfirmPassword(text);
                 if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
