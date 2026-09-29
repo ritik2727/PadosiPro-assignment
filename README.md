@@ -139,9 +139,10 @@ eas build --platform android --profile preview
 *EAS builds the standalone `.apk` in the cloud and provides a direct download QR code & link.*
 
 ### 📱 How External Evaluators Can Test the Standalone APK
-1. **Option A (Instant Test Account)**: Evaluators can log in using `demo@padosipro.com` / `Password123!` to test all features instantly with zero OTP wait.
-2. **Option B (Real Email Delivery)**: If Gmail SMTP is set in the backend environment, any email they register with will receive real 6-digit OTPs in their real inbox.
-3. **Option C (Ethereal Preview Link)**: If using default Ethereal testing, the mobile app shows an **"Open Ethereal Test Email in Browser"** button directly on the OTP screen so they can view the email in their mobile browser without needing access to server logs.
+
+1. **Option A (Instant 1-Tap Test Account)**: Evaluators can log in using `demo@padosipro.com` / `Password123!` to test all features instantly with zero OTP wait (simply tap **"⚡ Evaluator 1-Tap Fill"** on the mobile Sign In tab).
+2. **Option B (In-App Ethereal Preview Button)**: If real SMTP is not set, we added an **"Open Ethereal Test Email in Browser"** button directly on [VerifyOtpScreen.tsx](mobile/src/screens/VerifyOtpScreen.tsx). The evaluator can tap this button directly on their phone to open the email in Chrome/Safari and view the OTP.
+3. **Option C (Real Email Delivery via Gmail SMTP)**: If Gmail SMTP environment variables are configured on the backend, any email the reviewer registers with will receive real 6-digit OTPs directly into their real inbox.
 
 ---
 
