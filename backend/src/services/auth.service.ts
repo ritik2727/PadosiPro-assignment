@@ -73,11 +73,12 @@ export class AuthService {
     }
 
     // Generate and send OTP
-    await this.generateAndSendOtp(normalizedEmail);
+    const otpRes = await this.generateAndSendOtp(normalizedEmail);
 
     return {
       message: 'Registration successful. A 6-digit verification code has been sent to your email.',
       email: normalizedEmail,
+      previewUrl: otpRes?.previewUrl,
     };
   }
 
@@ -135,7 +136,7 @@ export class AuthService {
   /**
    * Verify an entered OTP
    */
-  async verifyOtp(email: string, otp: string): Promise<{ token: string; user: { id: string; email: string }; hasProfile: boolean }> {
+  async verifyOtp(email: string, otp: string): Promise<{ token: string; user: { id: string; email: string }; hasProfile: boolean; profile: any }> {
     const normalizedEmail = email.trim().toLowerCase();
     const cleanOtp = otp.trim();
     const now = new Date();
@@ -203,8 +204,18 @@ export class AuthService {
 
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail) as UserRecord;
 
-    // Check if profile exists
-    const profile = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(user.id) as ProfileRecord | undefined;
+    // Check if profile exists and format for client
+    const profileRecord = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(user.id) as ProfileRecord | undefined;
+    const profile = profileRecord ? {
+      ...profileRecord,
+      fullName: profileRecord.full_name,
+      mobileNumber: profileRecord.mobile_number,
+      addressArea: profileRecord.address_area,
+      societyBuilding: profileRecord.society_building,
+      flatUnit: profileRecord.flat_unit,
+      gateNotes: profileRecord.gate_notes,
+      businessName: profileRecord.business_name,
+    } : null;
 
     // Generate JWT token
     const token = this.generateToken(user.id, user.email);
@@ -213,13 +224,14 @@ export class AuthService {
       token,
       user: { id: user.id, email: user.email },
       hasProfile: !!profile,
+      profile,
     };
   }
 
   /**
    * Log in an existing user
    */
-  async login(email: string, password: string): Promise<{ token: string; user: { id: string; email: string }; hasProfile: boolean }> {
+  async login(email: string, password: string): Promise<{ token: string; user: { id: string; email: string }; hasProfile: boolean; profile: any }> {
     const normalizedEmail = email.trim().toLowerCase();
 
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail) as UserRecord | undefined;
@@ -236,8 +248,9 @@ export class AuthService {
     // Check verification status
     if (user.is_verified === 0) {
       // Send a fresh OTP automatically for convenience
+      let otpRes: any = null;
       try {
-        await this.generateAndSendOtp(normalizedEmail);
+        otpRes = await this.generateAndSendOtp(normalizedEmail);
       } catch (e) {
         // Ignore cooldown error if one was already sent recently
       }
@@ -247,16 +260,29 @@ export class AuthService {
         code: 'UNVERIFIED_EMAIL',
         message: 'Your email is not verified yet. We have sent a verification code to your email.',
         email: normalizedEmail,
+        previewUrl: otpRes?.previewUrl,
       };
     }
 
-    const profile = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(user.id) as ProfileRecord | undefined;
+    const profileRecord = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(user.id) as ProfileRecord | undefined;
+    const profile = profileRecord ? {
+      ...profileRecord,
+      fullName: profileRecord.full_name,
+      mobileNumber: profileRecord.mobile_number,
+      addressArea: profileRecord.address_area,
+      societyBuilding: profileRecord.society_building,
+      flatUnit: profileRecord.flat_unit,
+      gateNotes: profileRecord.gate_notes,
+      businessName: profileRecord.business_name,
+    } : null;
+
     const token = this.generateToken(user.id, user.email);
 
     return {
       token,
       user: { id: user.id, email: user.email },
       hasProfile: !!profile,
+      profile,
     };
   }
 

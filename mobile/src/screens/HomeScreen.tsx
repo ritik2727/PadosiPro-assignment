@@ -25,7 +25,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToTasks,
   onLogout,
 }) => {
-  const { profile, logout } = useAuth();
+  const { profile, logout, reloadSession } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -52,6 +52,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   useEffect(() => {
     fetchUserRequests();
+    if (!profile) {
+      reloadSession();
+    }
   }, []);
 
   const popularCategories = [

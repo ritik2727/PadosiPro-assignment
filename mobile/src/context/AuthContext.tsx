@@ -82,6 +82,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const res = await authApi.register(email, password);
     if (res.success) {
       setPendingEmail(email);
+      return res.data;
     }
   };
 
@@ -92,6 +93,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTokenState(res.data.token);
       setUser(res.data.user);
       setHasProfile(res.data.hasProfile);
+      if (res.data.profile) {
+        setProfile(normalizeProfile(res.data.profile));
+      } else if (res.data.hasProfile) {
+        try {
+          const prof = await profileApi.getProfile();
+          if (prof.success && prof.data) {
+            setProfile(normalizeProfile(prof.data));
+          }
+        } catch (e) {}
+      }
       return { hasProfile: res.data.hasProfile };
     }
     throw new Error(res.error || 'Verification failed');
@@ -113,6 +124,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setTokenState(res.data.token);
         setUser(res.data.user);
         setHasProfile(res.data.hasProfile);
+        if (res.data.profile) {
+          setProfile(normalizeProfile(res.data.profile));
+        } else if (res.data.hasProfile) {
+          try {
+            const prof = await profileApi.getProfile();
+            if (prof.success && prof.data) {
+              setProfile(normalizeProfile(prof.data));
+            }
+          } catch (e) {}
+        }
         return { hasProfile: res.data.hasProfile };
       }
       throw new Error(res.error || 'Login failed');

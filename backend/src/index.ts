@@ -9,8 +9,8 @@ async function bootstrap() {
     // 1. Initialize SQLite Database & Schema
     initDatabase();
 
-    // 2. Automatically Seed Tasks Catalogue if empty
-    seedTasks();
+    // 2. Automatically Seed Tasks Catalogue if empty & demo user
+    await seedTasks();
 
     // 3. Start Express Server
     app.listen(config.port, '0.0.0.0', () => {

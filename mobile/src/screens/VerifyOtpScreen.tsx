@@ -8,7 +8,9 @@ import {
   Platform,
   ScrollView,
   TextInput,
+  Linking,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { Header } from '../components/Header';
 import { LogoMark } from '../components/LogoMark';
@@ -17,12 +19,14 @@ import { useAuth } from '../context/AuthContext';
 
 interface VerifyOtpScreenProps {
   email: string;
+  initialPreviewUrl?: string;
   onBack: () => void;
   onVerified: (hasProfile: boolean) => void;
 }
 
 export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
   email,
+  initialPreviewUrl,
   onBack,
   onVerified,
 }) => {
@@ -31,6 +35,7 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialPreviewUrl);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(30);
@@ -71,6 +76,9 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
     try {
       const res = await resendOtp(email);
       setCooldown(res.cooldownSeconds || 30);
+      if (res.previewUrl) {
+        setPreviewUrl(res.previewUrl);
+      }
       setSuccessMsg('A new verification code has been dispatched.');
       setOtp('');
     } catch (err: any) {
@@ -172,11 +180,26 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
             )}
           </View>
 
-          {/* Note for local test reviewer */}
+          {/* Note for test reviewer */}
           <View style={styles.devNote}>
             <Text style={styles.devNoteText}>
-              💡 Testing locally? The 6-digit OTP is printed directly in your backend terminal console!
+              💡 Testing note: The 6-digit OTP is printed directly in the backend terminal console.
             </Text>
+            {previewUrl ? (
+              <TouchableOpacity
+                style={styles.etherealBtn}
+                onPress={() => Linking.openURL(previewUrl)}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons
+                  name="email-open-outline"
+                  size={16}
+                  color={colors.primary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.etherealBtnText}>Open Ethereal Test Email in Browser</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
 
           {/* Verify Button */}
@@ -334,6 +357,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#475569',
     lineHeight: 16,
+  },
+  etherealBtn: {
+    marginTop: 10,
+    backgroundColor: '#ffffff',
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  etherealBtnText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   buttonContainer: {
     marginTop: 8,

@@ -171,39 +171,114 @@ export const initialTasks = [
   }
 ];
 
-export function seedTasks() {
+import { hashPassword } from '../utils/crypto';
+
+export async function seedDemoUser() {
+  try {
+    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get('demo@padosipro.com') as { id: string } | undefined;
+    if (existing) {
+      const prof = db.prepare('SELECT id FROM profiles WHERE user_id = ?').get(existing.id);
+      if (!prof) {
+        const now = new Date().toISOString();
+        db.prepare(`
+          INSERT INTO profiles (id, user_id, full_name, mobile_number, address_area, society_building, flat_unit, business_name, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          generateId(),
+          existing.id,
+          'Ritik Jain',
+          '+91 97703 58070',
+          'Vijay Nagar, Andheri East, Mumbai',
+          'Skyline Palms',
+          'Flat 402, B Wing',
+          'PadosiPro Partner',
+          now,
+          now
+        );
+      }
+      return;
+    }
+
+    const userId = generateId();
+    const passwordHash = await hashPassword('Password123!');
+    const now = new Date().toISOString();
+
+    db.prepare(`
+      INSERT INTO users (id, email, password_hash, is_verified, created_at, updated_at)
+      VALUES (?, ?, ?, 1, ?, ?)
+    `).run(userId, 'demo@padosipro.com', passwordHash, now, now);
+
+    db.prepare(`
+      INSERT INTO profiles (id, user_id, full_name, mobile_number, address_area, society_building, flat_unit, business_name, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      generateId(),
+      userId,
+      'Ritik Jain',
+      '+91 97703 58070',
+      'Vijay Nagar, Andheri East, Mumbai',
+      'Skyline Palms',
+      'Flat 402, B Wing',
+      'PadosiPro Partner',
+      now,
+      now
+    );
+
+    db.prepare(`
+      INSERT INTO user_requests (id, user_id, service_title, sub_services, urgency, status, lifestyle_manager, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      generateId(),
+      userId,
+      'Home Services',
+      JSON.stringify(['AC Servicing & Repair', 'Plumbing Assistance']),
+      'Standard',
+      'Assigned',
+      'Pilot LM',
+      now,
+      now
+    );
+
+    logger.info('Demo user (demo@padosipro.com / Password123!) seeded successfully.');
+  } catch (err) {
+    logger.warn('Could not seed demo user:', err);
+  }
+}
+
+export async function seedTasks() {
   initDatabase();
 
   const countRow = db.prepare('SELECT COUNT(*) as count FROM tasks').get() as { count: number };
-  if (countRow.count > 0) {
+  if (countRow.count === 0) {
+    logger.info('Seeding tasks catalogue...');
+    const insertStmt = db.prepare(`
+      INSERT INTO tasks (id, title, category, description, icon_name, sub_services, is_coming_soon, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const insertMany = db.transaction((tasks) => {
+      const now = new Date().toISOString();
+      for (const t of tasks) {
+        insertStmt.run(
+          generateId(),
+          t.title,
+          t.category,
+          t.description,
+          t.icon_name,
+          JSON.stringify(t.sub_services),
+          t.is_coming_soon,
+          now
+        );
+      }
+    });
+
+    insertMany(initialTasks);
+    logger.info(`Successfully seeded ${initialTasks.length} task categories with 40+ sub-services!`);
+  } else {
     logger.info(`Tasks catalogue already seeded with ${countRow.count} tasks.`);
-    return;
   }
 
-  logger.info('Seeding tasks catalogue...');
-  const insertStmt = db.prepare(`
-    INSERT INTO tasks (id, title, category, description, icon_name, sub_services, is_coming_soon, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const insertMany = db.transaction((tasks) => {
-    const now = new Date().toISOString();
-    for (const t of tasks) {
-      insertStmt.run(
-        generateId(),
-        t.title,
-        t.category,
-        t.description,
-        t.icon_name,
-        JSON.stringify(t.sub_services),
-        t.is_coming_soon,
-        now
-      );
-    }
-  });
-
-  insertMany(initialTasks);
-  logger.info(`Successfully seeded ${initialTasks.length} task categories with 40+ sub-services!`);
+  await seedDemoUser();
 }
 
 if (require.main === module) {

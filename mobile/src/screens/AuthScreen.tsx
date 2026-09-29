@@ -16,7 +16,7 @@ import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthScreenProps {
-  onNavigateToOtp: (email: string) => void;
+  onNavigateToOtp: (email: string, previewUrl?: string) => void;
   onNavigateToProfile: () => void;
   onNavigateToHome: () => void;
 }
@@ -95,9 +95,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setLoading(true);
     try {
       if (mode === 'register') {
-        await register(email.trim(), password);
+        const regRes: any = await register(email.trim(), password);
         setPendingEmail(email.trim());
-        onNavigateToOtp(email.trim());
+        onNavigateToOtp(email.trim(), regRes?.previewUrl);
       } else {
         const result = await login(email.trim(), password);
         if (result.hasProfile) {
@@ -109,7 +109,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     } catch (err: any) {
       if (err.code === 'UNVERIFIED_EMAIL') {
         setPendingEmail(email.trim());
-        onNavigateToOtp(email.trim());
+        onNavigateToOtp(email.trim(), err.previewUrl);
       } else {
         setServerError(err.message || 'Authentication failed. Please try again.');
       }
@@ -181,6 +181,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Quick Demo Login Shortcut for Evaluators */}
+          {mode === 'login' && (
+            <TouchableOpacity
+              style={styles.demoLoginBox}
+              onPress={() => {
+                setEmail('demo@padosipro.com');
+                setPassword('Password123!');
+                setErrors({});
+                setServerError(null);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.demoLoginBoxText}>
+                ⚡ Evaluator 1-Tap Fill: <Text style={{ fontWeight: '700' }}>demo@padosipro.com</Text>
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Server Error Alert */}
           {serverError ? (
@@ -342,6 +360,21 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  demoLoginBox: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  demoLoginBoxText: {
+    color: '#065f46',
+    fontSize: 12,
+    fontWeight: '500',
   },
   errorAlert: {
     backgroundColor: colors.errorBackground,
