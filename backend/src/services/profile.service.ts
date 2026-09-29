@@ -16,7 +16,7 @@ export class ProfileService {
   /**
    * Save or update user profile
    */
-  saveProfile(userId: string, data: ProfileInput): ProfileRecord {
+  saveProfile(userId: string, data: ProfileInput): any {
     const existing = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(userId) as ProfileRecord | undefined;
     const now = new Date().toISOString();
 
@@ -47,7 +47,8 @@ export class ProfileService {
         userId
       );
 
-      return db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(userId) as ProfileRecord;
+      const saved = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(userId) as ProfileRecord;
+      return this.formatProfile(saved)!;
     } else {
       const profileId = generateId();
       db.prepare(`
@@ -70,16 +71,34 @@ export class ProfileService {
         now
       );
 
-      return db.prepare('SELECT * FROM profiles WHERE id = ?').get(profileId) as ProfileRecord;
+      const saved = db.prepare('SELECT * FROM profiles WHERE id = ?').get(profileId) as ProfileRecord;
+      return this.formatProfile(saved)!;
     }
+  }
+
+  /**
+   * Format profile to return both camelCase and snake_case for universal client compatibility
+   */
+  formatProfile(record: ProfileRecord | undefined) {
+    if (!record) return null;
+    return {
+      ...record,
+      fullName: record.full_name,
+      mobileNumber: record.mobile_number,
+      addressArea: record.address_area,
+      societyBuilding: record.society_building,
+      flatUnit: record.flat_unit,
+      gateNotes: record.gate_notes,
+      businessName: record.business_name,
+    };
   }
 
   /**
    * Get user profile
    */
-  getProfile(userId: string): ProfileRecord | null {
+  getProfile(userId: string) {
     const profile = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(userId) as ProfileRecord | undefined;
-    return profile || null;
+    return this.formatProfile(profile);
   }
 }
 

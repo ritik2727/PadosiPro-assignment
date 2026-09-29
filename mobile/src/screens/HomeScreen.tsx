@@ -33,7 +33,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
 
-  const firstName = profile?.fullName?.split(' ')[0] || 'there';
+  const profileName = profile?.fullName || (profile as any)?.full_name || '';
+  const firstName = profileName ? profileName.split(' ')[0] : 'there';
 
   const fetchUserRequests = async () => {
     try {
@@ -238,20 +239,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <Text style={styles.modalTitle}>User Profile</Text>
             <View style={styles.modalRow}>
               <Text style={styles.modalLabel}>Name:</Text>
-              <Text style={styles.modalValue}>{profile?.fullName || 'N/A'}</Text>
+              <Text style={styles.modalValue}>
+                {profile?.fullName || (profile as any)?.full_name || 'N/A'}
+              </Text>
             </View>
             <View style={styles.modalRow}>
               <Text style={styles.modalLabel}>Mobile:</Text>
-              <Text style={styles.modalValue}>{profile?.mobileNumber || 'N/A'}</Text>
+              <Text style={styles.modalValue}>
+                {profile?.mobileNumber || (profile as any)?.mobile_number || 'N/A'}
+              </Text>
             </View>
             <View style={styles.modalRow}>
               <Text style={styles.modalLabel}>Address:</Text>
-              <Text style={styles.modalValue}>{profile?.addressArea || 'N/A'}</Text>
+              <Text style={styles.modalValue}>
+                {profile?.addressArea || (profile as any)?.address_area || 'N/A'}
+              </Text>
             </View>
-            {profile?.businessName ? (
+            {profile?.businessName || (profile as any)?.business_name ? (
               <View style={styles.modalRow}>
                 <Text style={styles.modalLabel}>Business:</Text>
-                <Text style={styles.modalValue}>{profile.businessName}</Text>
+                <Text style={styles.modalValue}>
+                  {profile?.businessName || (profile as any)?.business_name}
+                </Text>
               </View>
             ) : null}
 

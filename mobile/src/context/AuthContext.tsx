@@ -24,6 +24,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function normalizeProfile(p: any): Profile | null {
+  if (!p) return null;
+  return {
+    id: p.id,
+    user_id: p.user_id,
+    fullName: p.fullName || p.full_name || '',
+    mobileNumber: p.mobileNumber || p.mobile_number || '',
+    addressArea: p.addressArea || p.address_area || '',
+    societyBuilding: p.societyBuilding || p.society_building || '',
+    flatUnit: p.flatUnit || p.flat_unit || '',
+    gateNotes: p.gateNotes || p.gate_notes || '',
+    businessName: p.businessName || p.business_name || '',
+  };
+}
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -45,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const res = await authApi.fetchMe();
       if (res.success && res.data) {
         setUser(res.data.user);
-        setProfile(res.data.profile);
+        setProfile(normalizeProfile(res.data.profile));
         setHasProfile(res.data.hasProfile);
       } else {
         await removeAuthToken();
@@ -112,7 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveProfile = async (data: any) => {
     const res = await profileApi.saveProfile(data);
     if (res.success && res.data) {
-      setProfile(res.data);
+      setProfile(normalizeProfile(res.data));
       setHasProfile(true);
     } else {
       throw new Error(res.error || 'Failed to save profile');
