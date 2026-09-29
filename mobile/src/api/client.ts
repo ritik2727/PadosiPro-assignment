@@ -13,7 +13,7 @@ import Constants from 'expo-constants';
 export function getApiBaseUrl(): string {
   // 1. Highest precedence: custom environment variable
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+    return process.env.EXPO_PUBLIC_API_URL.trim().replace(/\/+$/, '');
   }
 
   // 2. Web browser: match the current hostname (e.g. localhost or LAN IP)

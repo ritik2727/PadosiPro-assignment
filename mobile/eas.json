@@ -9,13 +9,19 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://padosipro-assignment.onrender.com"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://padosipro-assignment.onrender.com"
+      },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       }
     }
   },
