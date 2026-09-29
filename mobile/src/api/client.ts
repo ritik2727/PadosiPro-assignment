@@ -1,13 +1,46 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// Base API URL configuration
-// In Web & iOS Simulator: localhost:5000
-// In Android Emulator: 10.0.2.2:5000
-export const API_BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:5000',
-  default: 'http://localhost:5000',
-});
+/**
+ * Intelligent Base API URL Resolver
+ * 1. Checks process.env.EXPO_PUBLIC_API_URL if configured
+ * 2. On Web: connects to http://<current_hostname>:5000
+ * 3. On Physical Device (Expo Go): uses the Metro host IP (e.g. 192.168.x.x:5000)
+ * 4. On Android Emulator: connects to 10.0.2.2:5000
+ * 5. Default fallback: http://localhost:5000
+ */
+export function getApiBaseUrl(): string {
+  // 1. Highest precedence: custom environment variable
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  // 2. Web browser: match the current hostname (e.g. localhost or LAN IP)
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname || 'localhost';
+    return `http://${hostname}:5000`;
+  }
+
+  // 3. Expo Go on Physical Phone or Simulator: extract computer's LAN IP from Metro hostUri
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip) {
+      return `http://${ip}:5000`;
+    }
+  }
+
+  // 4. Android Emulator fallback
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:5000';
+  }
+
+  // 5. Default iOS Simulator / local fallback
+  return 'http://localhost:5000';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const TOKEN_KEY = '@padosipro_jwt_token';
 
@@ -39,6 +72,7 @@ export async function apiRequest<T = any>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const token = await getAuthToken();
+  const baseUrl = getApiBaseUrl();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -49,7 +83,7 @@ export async function apiRequest<T = any>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${baseUrl}${endpoint}`;
 
   try {
     const response = await fetch(url, {
@@ -73,6 +107,8 @@ export async function apiRequest<T = any>(
   } catch (error: any) {
     if (error.status) throw error;
     // Network connectivity issue
-    throw new Error('Could not connect to server. Please ensure the backend is running.');
+    throw new Error(
+      `Could not connect to server at ${baseUrl}. Please ensure the backend is running.`
+    );
   }
 }
