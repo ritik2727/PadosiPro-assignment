@@ -1,0 +1,17 @@
+{
+  "name": "padosipro-assignment",
+  "version": "1.0.0",
+  "description": "PadosiPro Full-Stack Assignment (Native Mobile App + Backend API)",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,MOBILE\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run dev --prefix backend\" \"npm run start --prefix mobile\"",
+    "backend": "npm run dev --prefix backend",
+    "backend:seed": "npm run seed --prefix backend",
+    "backend:test": "npm test --prefix backend",
+    "mobile": "npm run start --prefix mobile",
+    "mobile:web": "npm run web --prefix mobile",
+    "test": "npm test --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

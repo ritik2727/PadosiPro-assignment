@@ -53,45 +53,29 @@ A production-grade native mobile application and backend service replicating the
 
 ---
 
-### Step 1: Start the Backend API
-
-#### Option A: Direct Local Run (Recommended - Zero Setup)
-```bash
-cd backend
-
-# Install dependencies (if not already installed)
-npm install
-
-# Run database setup & task seeding (automatically seeds 15 categories & 40+ tasks)
-npm run seed
-
-# Run the automated tests for security and OTP rules
-npm test
-
-# Start the development server
-npm run dev
-```
-> The API will be running at `http://localhost:5000` (Health check: `http://localhost:5000/api/health`).
-> OTPs will be printed with clear formatting in your terminal console whenever requested.
-
-#### Option B: Docker Compose
+### ⚡ 1-Command Startup (Runs Both Backend & Mobile)
 From the project root:
 ```bash
-docker compose up --build
+# Starts both the backend API and the Expo mobile server together
+npm run dev
 ```
+- `[BACKEND]` will run on `http://localhost:5000` (Health check: `http://localhost:5000/api/health`)
+- `[MOBILE]` will run on `http://localhost:8081` (Press `w` for browser, or scan QR code on phone)
+- OTP codes will be printed directly in the terminal whenever requested.
 
 ---
 
-### Step 2: Run the Mobile Application
+### Alternative: Running in Separate Terminals
 
-In a new terminal window:
+#### Terminal 1: Backend API
+```bash
+cd backend
+npm run dev
+```
+
+#### Terminal 2: Mobile App
 ```bash
 cd mobile
-
-# Install dependencies
-npm install
-
-# Start the Expo development server
 npm start
 ```
 
