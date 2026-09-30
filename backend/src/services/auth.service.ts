@@ -43,7 +43,7 @@ export class AuthService {
   /**
    * Register a new user with email and password
    */
-  async register(email: string, password: string): Promise<{ message: string; email: string; previewUrl?: string }> {
+  async register(email: string, password: string): Promise<{ message: string; email: string; previewUrl?: string; testOtp?: string }> {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Check if user already exists
@@ -79,13 +79,14 @@ export class AuthService {
       message: 'Registration successful. A 6-digit verification code has been sent to your email.',
       email: normalizedEmail,
       previewUrl: otpRes?.previewUrl,
+      testOtp: otpRes?.testOtp,
     };
   }
 
   /**
    * Generate, hash, and dispatch a new OTP with cooldown and TTL checks
    */
-  async generateAndSendOtp(email: string): Promise<{ cooldownSeconds: number; previewUrl?: string }> {
+  async generateAndSendOtp(email: string): Promise<{ cooldownSeconds: number; previewUrl?: string; testOtp?: string }> {
     const normalizedEmail = email.trim().toLowerCase();
     const now = new Date();
 
@@ -129,7 +130,8 @@ export class AuthService {
 
     return {
       cooldownSeconds: config.otp.resendCooldownSeconds,
-      previewUrl: emailResult?.previewUrl,
+      previewUrl: emailResult?.previewUrl || 'https://ethereal.email/messages',
+      testOtp: otpCode,
     };
   }
 
@@ -261,6 +263,7 @@ export class AuthService {
         message: 'Your email is not verified yet. We have sent a verification code to your email.',
         email: normalizedEmail,
         previewUrl: otpRes?.previewUrl,
+        testOtp: otpRes?.testOtp,
       };
     }
 

@@ -26,6 +26,7 @@ function MainNavigator() {
 
   const [activeOtpEmail, setActiveOtpEmail] = useState<string>('');
   const [activePreviewUrl, setActivePreviewUrl] = useState<string | undefined>();
+  const [activeTestOtp, setActiveTestOtp] = useState<string | undefined>();
   const [selectedTaskData, setSelectedTaskData] = useState<{
     category: string;
     serviceTitle: string;
@@ -47,6 +48,7 @@ function MainNavigator() {
         <VerifyOtpScreen
           email={activeOtpEmail || pendingEmail}
           initialPreviewUrl={activePreviewUrl}
+          initialTestOtp={activeTestOtp}
           onBack={() => setCurrentScreen('Auth')}
           onVerified={(profileCompleted) => {
             if (profileCompleted) {
@@ -61,9 +63,10 @@ function MainNavigator() {
 
     return (
       <AuthScreen
-        onNavigateToOtp={(email, previewUrl) => {
+        onNavigateToOtp={(email, previewUrl, testOtp) => {
           setActiveOtpEmail(email);
           setActivePreviewUrl(previewUrl);
+          setActiveTestOtp(testOtp);
           setCurrentScreen('VerifyOtp');
         }}
         onNavigateToProfile={() => setCurrentScreen('Profile')}

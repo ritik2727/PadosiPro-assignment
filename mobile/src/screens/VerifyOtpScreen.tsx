@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 interface VerifyOtpScreenProps {
   email: string;
   initialPreviewUrl?: string;
+  initialTestOtp?: string;
   onBack: () => void;
   onVerified: (hasProfile: boolean) => void;
 }
@@ -27,6 +28,7 @@ interface VerifyOtpScreenProps {
 export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
   email,
   initialPreviewUrl,
+  initialTestOtp,
   onBack,
   onVerified,
 }) => {
@@ -36,6 +38,7 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialPreviewUrl);
+  const [testOtp, setTestOtp] = useState<string | undefined>(initialTestOtp);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(30);
@@ -74,10 +77,13 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
     setSuccessMsg(null);
     setResending(true);
     try {
-      const res = await resendOtp(email);
+      const res: any = await resendOtp(email);
       setCooldown(res.cooldownSeconds || 30);
       if (res.previewUrl) {
         setPreviewUrl(res.previewUrl);
+      }
+      if (res.testOtp) {
+        setTestOtp(res.testOtp);
       }
       setSuccessMsg('A new verification code has been dispatched.');
       setOtp('');
@@ -182,24 +188,44 @@ export const VerifyOtpScreen: React.FC<VerifyOtpScreenProps> = ({
 
           {/* Note for test reviewer */}
           <View style={styles.devNote}>
-            <Text style={styles.devNoteText}>
-              💡 Testing note: The 6-digit OTP is printed directly in the backend terminal console.
-            </Text>
-            {previewUrl ? (
+            {testOtp ? (
               <TouchableOpacity
-                style={styles.etherealBtn}
-                onPress={() => Linking.openURL(previewUrl)}
+                style={styles.testOtpBadge}
+                onPress={() => {
+                  setOtp(testOtp);
+                  if (error) setError(null);
+                }}
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons
-                  name="email-open-outline"
+                  name="lightning-bolt"
                   size={16}
-                  color={colors.primary}
+                  color="#065f46"
                   style={{ marginRight: 6 }}
                 />
-                <Text style={styles.etherealBtnText}>Open Ethereal Test Email in Browser</Text>
+                <Text style={styles.testOtpText}>
+                  Evaluator Quick Code: <Text style={{ fontWeight: '700' }}>{testOtp}</Text> (Tap to fill)
+                </Text>
               </TouchableOpacity>
             ) : null}
+
+            <TouchableOpacity
+              style={styles.etherealBtn}
+              onPress={() => Linking.openURL(previewUrl || 'https://ethereal.email/messages')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons
+                name="email-open-outline"
+                size={16}
+                color={colors.primary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.etherealBtnText}>Open Ethereal Test Email in Browser</Text>
+            </TouchableOpacity>
+
+            <Text style={[styles.devNoteText, { marginTop: 8 }]}>
+              💡 Tip: The 6-digit OTP is also printed in the backend terminal console.
+            </Text>
           </View>
 
           {/* Verify Button */}
@@ -357,6 +383,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#475569',
     lineHeight: 16,
+  },
+  testOtpBadge: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  testOtpText: {
+    color: '#065f46',
+    fontSize: 13,
+    fontWeight: '500',
   },
   etherealBtn: {
     marginTop: 10,

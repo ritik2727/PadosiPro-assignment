@@ -16,7 +16,7 @@ import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthScreenProps {
-  onNavigateToOtp: (email: string, previewUrl?: string) => void;
+  onNavigateToOtp: (email: string, previewUrl?: string, testOtp?: string) => void;
   onNavigateToProfile: () => void;
   onNavigateToHome: () => void;
 }
@@ -97,7 +97,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       if (mode === 'register') {
         const regRes: any = await register(email.trim(), password);
         setPendingEmail(email.trim());
-        onNavigateToOtp(email.trim(), regRes?.previewUrl);
+        onNavigateToOtp(email.trim(), regRes?.previewUrl, regRes?.testOtp);
       } else {
         const result = await login(email.trim(), password);
         if (result.hasProfile) {
@@ -109,7 +109,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     } catch (err: any) {
       if (err.code === 'UNVERIFIED_EMAIL') {
         setPendingEmail(email.trim());
-        onNavigateToOtp(email.trim(), err.previewUrl);
+        onNavigateToOtp(email.trim(), err.previewUrl, err.testOtp);
       } else {
         setServerError(err.message || 'Authentication failed. Please try again.');
       }
