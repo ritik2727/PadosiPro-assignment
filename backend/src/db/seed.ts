@@ -225,11 +225,12 @@ export async function seedDemoUser() {
     );
 
     db.prepare(`
-      INSERT INTO user_requests (id, user_id, service_title, sub_services, urgency, status, lifestyle_manager, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO user_requests (id, user_id, category, service_title, sub_services, urgency, status, lifestyle_manager, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       generateId(),
       userId,
+      'home',
       'Home Services',
       JSON.stringify(['AC Servicing & Repair', 'Plumbing Assistance']),
       'Standard',
